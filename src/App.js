@@ -1,10 +1,38 @@
-import photo from './images/smile.jpg';
+
 import './App.css';
 import { useState, useEffect } from 'react';
-import { MSfaceAPI, useCamera } from "./components/face";
+import { MSfaceAPI, Photo } from "./components/face";
 import { searchYoutube } from "./components/youtube";
 
-function App() {
+const TopMenu = (props) => {
+  const testSearch = async () => {
+    const a = await MSfaceAPI();
+    console.log("detect result: ", a);
+  }
+
+  const goToPhotoComponent = () => props.onChangeAppStatus({ onDisp: 'PHOTO' })
+
+  return (
+    <div>
+      <div onClick={goToPhotoComponent}>表情を撮影する</div>
+      {/* <p onClick={MSfaceAPI}>face api</p> */}
+      {/* <p id="youtube" onClick={searchYoutube}>search youtube test</p> */}
+      {/* <p onClick={testSearch}>face detect test</p> */}
+      <video></video>
+      <canvas></canvas>
+    </div>
+  )
+}
+
+
+const App = () => {
+
+  //TOP, PHOTO, RESULT
+  const [appStatus, setAppStatus] = useState({
+    onDisp: 'TOP',
+    userData: {},
+    searchResult: {}
+  })
 
   const [faceInfo, setFaceInfo] = useState({
     bounding: {},
@@ -17,38 +45,27 @@ function App() {
     useCamera();
   }
 
-  async function testSearch() {
-    const a = await MSfaceAPI();
-    console.log("detect result: ", a);
-    // const a = await MSfaceAPI().then(() => { console.log("finished") });
-    // MSfaceAPI(setFaceInfo).then(() => { console.log("finished") });
-    // console.log("result:", a);
+
+  let displayComponent;
+  switch (appStatus.onDisp) {
+    case 'TOP':
+      displayComponent = <TopMenu onChangeAppStatus={setAppStatus}></TopMenu>
+      break;
+    case 'PHOTO':
+      displayComponent = <Photo onChangeAppStatus={setAppStatus}></Photo>
+      break;
+    default:
+      displayComponent = <TopMenu></TopMenu>
+      break;
   }
-
-
 
   return (
     <div className="App">
-      <h1>音声検索アプリ　テスト</h1>
-
-      <div>条件指定はこちら</div>
-      <img src={photo} />
-      <div className={"flex"}>
-        <div>環境情報検索</div>
-        <div>複合条件検索</div>
-        <div>表情検索</div>
-        {/* <p onClick={MSfaceAPI}>face api</p> */}
-        <p id="shutter">shutter</p>
-        <p id="youtube" onClick={searchYoutube}>search youtube</p>
-        <p id="result"></p>
-        <p onClick={testSearch}>search test start</p>
-        <video></video>
-        <canvas></canvas>
-      </div>
+      <h1>音楽検索アプリ　テスト</h1>
+      {displayComponent}
     </div>
   );
 }
-
 
 // const python = () => {
 //   var { PythonShell } = require('python-shell');

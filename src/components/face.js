@@ -1,75 +1,10 @@
+import photo from '../images/smile.jpg';
+import styles from "./styles/face.scss";
+
 const send = () => {
 
 }
 
-
-/**
- * 
- * @param {object} t
- * HTML elements for taking a photo
- * 
- * t.video: display taken a photo area (video tag)
- * t.shutter: take a photo button
- * t.canvas: display stream video from camera (canvas tag)
- * 
- */
-const ready = () => {
-
-  const userMediaSettings = {
-    audio: false,
-    video: {
-      width: 500,
-      height: 500,
-      facingMode: "user"
-    }
-  }
-
-  let settings = {
-
-  }
-
-  const start = (t) => {
-    console.log(t);
-    navigator.mediaDevices.getUserMedia(userMediaSettings)
-      .then((stream) => {
-        console.log(stream);
-        t.video.srcObject = stream;
-        t.video.onloadedmetadata = (e) => {
-          t.video.play();
-        };
-
-        t.shutter.onclick = () => {
-          const ctx = t.canvas.getContext("2d");
-
-          t.video.pause();
-          ctx.drawImage(t.video, 0, 0, t.canvas.width, t.canvas.height)
-          setTimeout(() => {
-            t.video.play();
-          }, 500);
-        }
-      })
-      .catch((err) => {
-        console.error('mediaDevice.getUserMedia() error:', err);
-        return;
-      });
-  }
-  window.onload = () => {
-    let v = document.querySelector("video");
-    let c = document.querySelector("canvas");
-    let s = document.getElementById("shutter");
-    settings = {
-      video: v,
-      canvas: c,
-      shutter: s
-    }
-
-    console.log(c);
-    c.height = 500;
-    c.width = 500;
-
-    start(settings);
-  }
-}
 
 const main = async (setInfo) => {
 
@@ -154,4 +89,73 @@ const main = async (setInfo) => {
 
 }
 
-export { main as MSfaceAPI, ready as useCamera, send as postToServer };
+
+const Photo = (props) => {
+
+  window.onload = () => {
+    const userMediaSettings = {
+      audio: false,
+      video: {
+        width: 500,
+        height: 500,
+        facingMode: "user"
+      }
+    }
+
+    const start = (t) => {
+      console.log(t);
+      navigator.mediaDevices.getUserMedia(userMediaSettings)
+        .then((stream) => {
+          console.log(stream);
+          t.video.srcObject = stream;
+          t.video.onloadedmetadata = (e) => {
+            t.video.play();
+          };
+
+          t.shutter.onclick = () => {
+            const ctx = t.canvas.getContext("2d");
+
+            t.video.pause();
+            ctx.drawImage(t.video, 0, 0, t.canvas.width, t.canvas.height)
+            setTimeout(() => {
+              t.video.play();
+            }, 500);
+          }
+        })
+        .catch((err) => {
+          console.error('mediaDevice.getUserMedia() error:', err);
+          return;
+        });
+    }
+
+    let v = document.querySelector("video");
+    let c = document.querySelector("canvas");
+    let s = document.getElementById("shutter");
+    settings = {
+      video: v,
+      canvas: c,
+      shutter: s
+    }
+
+    console.log(c);
+    c.height = 500;
+    c.width = 500;
+
+    start(settings);
+  }
+
+  const backToTop = () => props.onChangeAppStatus({ onDisp: 'TOP' });
+
+
+  return (
+    <div className={styles['flex']}>
+      <a onClick={backToTop}>TOP画面に戻る</a>
+      <video></video>
+      <p>テスト画像</p>
+      <img src={photo} />
+      <button id="shutter">撮影する</button>
+    </div>
+  )
+}
+
+export { main as MSfaceAPI, send as postToServer, Photo };
