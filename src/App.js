@@ -5,10 +5,7 @@ import { MSfaceAPI, Photo } from "./components/face";
 import { searchYoutube } from "./components/youtube";
 
 const TopMenu = (props) => {
-  const testSearch = async () => {
-    const a = await MSfaceAPI();
-    console.log("detect result: ", a);
-  }
+
 
   const goToPhotoComponent = () => props.onChangeAppStatus({ onDisp: 'PHOTO' })
 
@@ -45,6 +42,10 @@ const App = () => {
     useCamera();
   }
 
+  const youtubeExecTest = () => {
+    searchYoutube();
+  }
+
 
   let displayComponent;
   switch (appStatus.onDisp) {
@@ -63,6 +64,7 @@ const App = () => {
     <div className="App">
       <h1>音楽検索アプリ　テスト</h1>
       {displayComponent}
+      <p onClick={youtubeExecTest}>youtube test</p>
     </div>
   );
 }

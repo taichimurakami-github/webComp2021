@@ -1,87 +1,144 @@
 import photo from '../images/smile.jpg';
-import styles from "./styles/face.scss";
+import styles from "./styles/face.module.scss";
+import { useState, useEffect, useRef } from 'react';
+console.log(styles);
 
 const send = () => {
 
 }
 
 
-const main = async (setInfo) => {
+const main = async (data) => {
 
   const msRest = require("@azure/ms-rest-js");
   const Face = require("@azure/cognitiveservices-face");
-  const { v4: uuid } = require("uuid");
+  // const { v4: uuid } = require("uuid");
   const key = "a27553b0195a46239a6d129bda16169e"
   const endpoint = "https://webcomp2021-taichimurakami.cognitiveservices.azure.com/"
 
+  // rest api calling url
+  // const uriBase = "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/detect";
+
+  const params_obj = {
+    "returnFaceId": "true",
+    "returnFaceLandmarks": "false",
+    "returnFaceAttributes":
+      "age,gender,headPose,smile,facialHair,glasses,emotion," +
+      "hair,makeup,occlusion,accessories,blur,exposure,noise"
+  };
+
+  const params =
+    "returnFaceId=true" +
+    "&returnFaceLandmarks=false" +
+    "&returnFaceAttributes=" +
+    "age,gender,headPose,smile,facialHair,glasses,emotion," +
+    "hair,makeup,occlusion,accessories,blur,exposure,noise";
+
+  const makeBlob = (d) => {
+    let parts = d.split(";base64,");
+    let contentType = parts[0].split(":")[1];
+    let raw = window.atob(parts[1]);
+    let uInt8Array = new Uint8Array(raw.length);
+
+    for (let i = 0; i < raw.length; ++i) {
+      uInt8Array[i] = raw.charCodeAt(i);
+    }
+
+    return new Blob([uInt8Array], { type: contentType });
+  }
+
   const credentials = new msRest.ApiKeyCredentials({ inHeader: { 'Ocp-Apim-Subscription-Key': key } });
   const client = new Face.FaceClient(credentials, endpoint);
-
-  const image_base_url = "https://csdx.blob.core.windows.net/resources/Face/Images/";
-  const person_group_id = uuid();
-  const image_file_names = [
-    // "detection1.jpg",    // single female with glasses
-    // "detection2.jpg", // (optional: single man)
-    // "detection3.jpg", // (optional: single male construction worker)
-    // "detection4.jpg", // (optional: 3 people at cafe, 1 is blurred)
-    "detection5.jpg",    // family, woman child man
-    // "detection6.jpg"     // elderly couple, male female
-  ];
-
-  const image_file_name = image_file_names[0];
-  const IMAGES_URL = "https://xs12321.xsrv.jp/angry_man_01.jpg";
   const DETECT_WITH_URL_OPTIONS = {
     returnFaceAttributes: ["Accessories", "Age", "Blur", "Emotion", "Exposure", "FacialHair", "Gender", "Glasses", "Hair", "HeadPose", "Makeup", "Noise", "Occlusion", "Smile"],
     detectionModel: "detection_01"
   }
-  const returnResult = {}
-  const DetectFaceExtract = async () => {
 
-    console.log("========DETECT FACES========");
 
-    //FACE API detectWithUrl
-    let detected_faces = await client.face.detectWithUrl(IMAGES_URL, DETECT_WITH_URL_OPTIONS);
-    console.log(detected_faces[0]);
+  console.log("phase: DETECTING YOUR FACE...");
+  let detected_faces = await client.face.detectWithStream(makeBlob(data), DETECT_WITH_URL_OPTIONS);
 
-    //display results
-    console.log(detected_faces.length + " face(s) detected from image " + image_file_name + ".");
-    console.log("Face attributes for face(s) in " + image_file_name + ":");
-    console.log("これは表示される");
-    await new Promise(resolve => {
-      const face = detected_faces[0];
-      //get the bounding box of the face
-      console.log("Bounding box:\n  Left: " + face.faceRectangle.left + "\n  Top: " + face.faceRectangle.top + "\n  Width: " + face.faceRectangle.width + "\n  Height: " + face.faceRectangle.height);
-      returnResult.bounding = face.faceRectangle;
+  //format emotions
+  let emotions = "";
+  let emotion_threshold = 0.0;//感情の閾値を設定する変数
+  console.log("faceEmotion Attoributes: ", face.faceAttributes.emotion);
+  if (detected_faces[0].faceAttributes.emotion.anger > emotion_threshold) { emotions += "anger,"; }
+  if (detected_faces[0].faceAttributes.emotion.contempt > emotion_threshold) { emotions += "contempt,"; }
+  if (detected_faces[0].faceAttributes.emotion.disgust > emotion_threshold) { emotions += "disgust,"; }
+  if (detected_faces[0].faceAttributes.emotion.fear > emotion_threshold) { emotions += "fear,"; }
+  if (detected_faces[0].faceAttributes.emotion.happiness > emotion_threshold) { emotions += "happiness,"; }
+  if (detected_faces[0].faceAttributes.emotion.neutral > emotion_threshold) { emotions += "neutral,"; }
+  if (detected_faces[0].faceAttributes.emotion.sadness > emotion_threshold) { emotions += "sadness,"; }
+  if (detected_faces[0].faceAttributes.emotion.surprise > emotion_threshold) { emotions += "surprise,"; }
 
-      // Get face other attributes
-      console.log("Age: " + face.faceAttributes.age);
-      returnResult.age = face.faceAttributes.age;
+  return detected_faces[0];
 
-      // Get emotion on the face
-      let emotions = "";
-      let emotion_threshold = 0.0;//感情の閾値を設定する変数
-      console.log("faceEmotion Attoributes: ", face.faceAttributes.emotion);
-      if (face.faceAttributes.emotion.anger > emotion_threshold) { emotions += "anger, "; }
-      if (face.faceAttributes.emotion.contempt > emotion_threshold) { emotions += "contempt, "; }
-      if (face.faceAttributes.emotion.disgust > emotion_threshold) { emotions += "disgust, "; }
-      if (face.faceAttributes.emotion.fear > emotion_threshold) { emotions += "fear, "; }
-      if (face.faceAttributes.emotion.happiness > emotion_threshold) { emotions += "happiness, "; }
-      if (face.faceAttributes.emotion.neutral > emotion_threshold) { emotions += "neutral, "; }
-      if (face.faceAttributes.emotion.sadness > emotion_threshold) { emotions += "sadness, "; }
-      if (face.faceAttributes.emotion.surprise > emotion_threshold) { emotions += "surprise, "; }
 
-      if (emotions.length > 0) {
-        console.log("Emotions: " + emotions.slice(0, -2));
-        returnResult.emotion = emotions.slice(0, -2);
-      }
-      else {
-        console.log("No emotions detected.");
-      }
+  // const image_base_url = "https://csdx.blob.core.windows.net/resources/Face/Images/";
+  // const person_group_id = uuid();
+  // const image_file_names = [
+  //   // "detection1.jpg",    // single female with glasses
+  //   // "detection2.jpg", // (optional: single man)
+  //   // "detection3.jpg", // (optional: single male construction worker)
+  //   // "detection4.jpg", // (optional: 3 people at cafe, 1 is blurred)
+  //   "detection5.jpg",    // family, woman child man
+  //   // "detection6.jpg"     // elderly couple, male female
+  // ];
 
-      resolve();
-    })
+  // const image_file_name = image_file_names[0];
+  // const IMAGES_URL = "https://xs12321.xsrv.jp/angry_man_01.jpg";
+  // const DETECT_WITH_URL_OPTIONS = {
+  //   returnFaceAttributes: ["Accessories", "Age", "Blur", "Emotion", "Exposure", "FacialHair", "Gender", "Glasses", "Hair", "HeadPose", "Makeup", "Noise", "Occlusion", "Smile"],
+  //   detectionModel: "detection_01"
+  // }
+  // const returnResult = {}
+  // const DetectFaceExtract = async () => {
 
-  }//detectExtract
+  //   console.log("========DETECT FACES========");
+
+  //   //FACE API detectWithUrl
+  //   let detected_faces = await client.face.detectWithUrl(IMAGES_URL, DETECT_WITH_URL_OPTIONS);
+  //   console.log(detected_faces[0]);
+
+  //   //display results
+  //   console.log(detected_faces.length + " face(s) detected from image " + image_file_name + ".");
+  //   console.log("Face attributes for face(s) in " + image_file_name + ":");
+  //   console.log("これは表示される");
+  //   await new Promise(resolve => {
+  //     const face = detected_faces[0];
+  //     //get the bounding box of the face
+  //     console.log("Bounding box:\n  Left: " + face.faceRectangle.left + "\n  Top: " + face.faceRectangle.top + "\n  Width: " + face.faceRectangle.width + "\n  Height: " + face.faceRectangle.height);
+  //     returnResult.bounding = face.faceRectangle;
+
+  //     // Get face other attributes
+  //     console.log("Age: " + face.faceAttributes.age);
+  //     returnResult.age = face.faceAttributes.age;
+
+  //     // Get emotion on the face
+  //     let emotions = "";
+  //     let emotion_threshold = 0.0;//感情の閾値を設定する変数
+  //     console.log("faceEmotion Attoributes: ", face.faceAttributes.emotion);
+  //     if (face.faceAttributes.emotion.anger > emotion_threshold) { emotions += "anger, "; }
+  //     if (face.faceAttributes.emotion.contempt > emotion_threshold) { emotions += "contempt, "; }
+  //     if (face.faceAttributes.emotion.disgust > emotion_threshold) { emotions += "disgust, "; }
+  //     if (face.faceAttributes.emotion.fear > emotion_threshold) { emotions += "fear, "; }
+  //     if (face.faceAttributes.emotion.happiness > emotion_threshold) { emotions += "happiness, "; }
+  //     if (face.faceAttributes.emotion.neutral > emotion_threshold) { emotions += "neutral, "; }
+  //     if (face.faceAttributes.emotion.sadness > emotion_threshold) { emotions += "sadness, "; }
+  //     if (face.faceAttributes.emotion.surprise > emotion_threshold) { emotions += "surprise, "; }
+
+  //     if (emotions.length > 0) {
+  //       console.log("Emotions: " + emotions.slice(0, -2));
+  //       returnResult.emotion = emotions.slice(0, -2);
+  //     }
+  //     else {
+  //       console.log("No emotions detected.");
+  //     }
+
+  //     resolve();
+  //   })
+
+  // }//detectExtract
 
   //execute detectfunc()
   await DetectFaceExtract();
@@ -91,8 +148,21 @@ const main = async (setInfo) => {
 
 
 const Photo = (props) => {
+  const videoElement = useRef(null);
+  const canvasElement = useRef(null);
+  const shutterElement = useRef(null);
+  let photoDataURL = '';
 
-  window.onload = () => {
+  const detect = async () => {
+    photoDataURL = canvasElement.current.toDataURL();
+    console.log("send data: ", photoDataURL);
+    const result = await main(photoDataURL);
+    console.log("detect result: ", result);
+
+
+  }
+
+  const start = (t) => {
     const userMediaSettings = {
       audio: false,
       video: {
@@ -102,58 +172,87 @@ const Photo = (props) => {
       }
     }
 
-    const start = (t) => {
-      console.log(t);
-      navigator.mediaDevices.getUserMedia(userMediaSettings)
-        .then((stream) => {
-          console.log(stream);
-          t.video.srcObject = stream;
-          t.video.onloadedmetadata = (e) => {
+    console.log(t.shutter);
+    navigator.mediaDevices.getUserMedia(userMediaSettings)
+      .then((stream) => {
+        console.log(stream);
+        t.video.srcObject = stream;
+        t.video.onloadedmetadata = (e) => {
+          t.video.play();
+        };
+
+        t.shutter.onclick = () => {
+          const ctx = t.canvas.getContext("2d");
+
+          t.video.pause();
+          ctx.drawImage(t.video, 0, 0, t.canvas.width, t.canvas.height)
+          setTimeout(() => {
             t.video.play();
-          };
+          }, 1000);
+        }
+      })
+      .catch((err) => {
+        console.error('mediaDevice.getUserMedia() error:', err);
+        return;
+      });
+  }
 
-          t.shutter.onclick = () => {
-            const ctx = t.canvas.getContext("2d");
-
-            t.video.pause();
-            ctx.drawImage(t.video, 0, 0, t.canvas.width, t.canvas.height)
-            setTimeout(() => {
-              t.video.play();
-            }, 500);
-          }
-        })
-        .catch((err) => {
-          console.error('mediaDevice.getUserMedia() error:', err);
-          return;
-        });
-    }
-
-    let v = document.querySelector("video");
-    let c = document.querySelector("canvas");
-    let s = document.getElementById("shutter");
-    settings = {
+  useEffect(() => {
+    let v = videoElement.current;
+    let c = canvasElement.current;
+    let s = shutterElement.current;
+    const settings = {
       video: v,
       canvas: c,
       shutter: s
     }
 
-    console.log(c);
+    console.log(canvasElement);
     c.height = 500;
     c.width = 500;
-
+    // c.style.background = "black";
     start(settings);
-  }
+  }, []);
+
+
 
   const backToTop = () => props.onChangeAppStatus({ onDisp: 'TOP' });
+  const [displayCanvas, setDisplayCanvas] = useState(false);
+  const [canvasState, setCanvasState] = useState(styles["canvas-container-unactive"]);
+  const createCanvas = () => {
+    return setDisplayCanvas(true);
+  }
 
+  const retry = () => {
+    return setDisplayCanvas(false);
+
+  }
+  useEffect(
+    () => {
+      if (displayCanvas) {
+        setCanvasState(styles['canvas-container-active']);
+      }
+      else {
+        setCanvasState(styles['canvas-container-unactive']);
+      }
+    }
+    , [displayCanvas]);
 
   return (
-    <div className={styles['flex']}>
+    <div className={styles.wrapper}>
       <a onClick={backToTop}>TOP画面に戻る</a>
-      <video></video>
-      <p>テスト画像</p>
-      <img src={photo} />
-      <button id="shutter">撮影する</button>
+      <div className={styles["video-container"]}>
+        <video ref={videoElement}></video>
+        <button onClick={createCanvas} ref={shutterElement} id="shutter">撮影する</button>
+      </div>
+      <div className={canvasState}>
+        <canvas ref={canvasElement} id="target"></canvas>
+        <button onClick={detect}>detect</button>
+        <button onClick={retry}>retry</button>
+      </div>
+      {/* <p>テスト画像</p> */}
+      {/* <img src={photo} /> */}
+
     </div>
   )
 }
