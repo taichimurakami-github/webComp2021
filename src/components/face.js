@@ -61,7 +61,7 @@ const main = async (data) => {
   //format emotions
   let emotions = "";
   let emotion_threshold = 0.0;//感情の閾値を設定する変数
-  console.log("faceEmotion Attoributes: ", face.faceAttributes.emotion);
+  // console.log("faceEmotion Attoributes: ", detected_faces[0].faceAttributes.emotion);
   if (detected_faces[0].faceAttributes.emotion.anger > emotion_threshold) { emotions += "anger,"; }
   if (detected_faces[0].faceAttributes.emotion.contempt > emotion_threshold) { emotions += "contempt,"; }
   if (detected_faces[0].faceAttributes.emotion.disgust > emotion_threshold) { emotions += "disgust,"; }
@@ -141,8 +141,8 @@ const main = async (data) => {
   // }//detectExtract
 
   //execute detectfunc()
-  await DetectFaceExtract();
-  return returnResult;
+  // await DetectFaceExtract();
+  // return returnResult;
 
 }
 
@@ -151,29 +151,27 @@ const Photo = (props) => {
   const videoElement = useRef(null);
   const canvasElement = useRef(null);
   const shutterElement = useRef(null);
+
+  const [mediaState, setmediaState] = useState(true);
   let photoDataURL = '';
-
-  const detect = async () => {
-    photoDataURL = canvasElement.current.toDataURL();
-    console.log("send data: ", photoDataURL);
-    const result = await main(photoDataURL);
-    console.log("detect result: ", result);
-
-
+  const media = navigator.mediaDevices;
+  const userMediaSettings = {
+    audio: false,
+    video: {
+      width: 500,
+      height: 500,
+      facingMode: "user"
+    }
   }
 
-  const start = (t) => {
-    const userMediaSettings = {
-      audio: false,
-      video: {
-        width: 500,
-        height: 500,
-        facingMode: "user"
-      }
-    }
+  /**
+   * VIDEO STREAMING CODE
+   */
 
-    console.log(t.shutter);
-    navigator.mediaDevices.getUserMedia(userMediaSettings)
+
+  const startMedia = (t) => {
+
+    media.getUserMedia(userMediaSettings)
       .then((stream) => {
         console.log(stream);
         t.video.srcObject = stream;
@@ -197,24 +195,50 @@ const Photo = (props) => {
       });
   }
 
+  const stopMedia = (t) => {
+    const tracks = t.video.srcObject.getTracks();
+    tracks.forEach((track) => {
+      track.stop();
+    })
+
+    t.video.srcObject = null;
+    return;
+  }
+
+  const stop = () => {
+    return setmediaState(false);
+  }
+
+  const retry = () => {
+    setmediaState(true);
+    return setDisplayCanvas(false);
+  }
+
+  //control media
   useEffect(() => {
-    let v = videoElement.current;
-    let c = canvasElement.current;
-    let s = shutterElement.current;
+    const v = videoElement.current;
+    const c = canvasElement.current;
+    const s = shutterElement.current;
     const settings = {
       video: v,
       canvas: c,
       shutter: s
     }
 
-    console.log(canvasElement);
-    c.height = 500;
-    c.width = 500;
-    // c.style.background = "black";
-    start(settings);
-  }, []);
+    if(mediaState){
+      startMedia(settings);
+    }
+    else{
+      stopMedia(settings);
+    }
+
+  }, [mediaState]);
 
 
+
+  /**
+   * UI AND FUNCTIONAL CODE
+   */
 
   const backToTop = () => props.onChangeAppStatus({ onDisp: 'TOP' });
   const [displayCanvas, setDisplayCanvas] = useState(false);
@@ -223,10 +247,13 @@ const Photo = (props) => {
     return setDisplayCanvas(true);
   }
 
-  const retry = () => {
-    return setDisplayCanvas(false);
-
+  const detect = async () => {
+    photoDataURL = canvasElement.current.toDataURL();
+    console.log("send data: ", photoDataURL);
+    const result = await main(photoDataURL);
+    console.log("detect result: ", result);
   }
+
   useEffect(
     () => {
       if (displayCanvas) {
@@ -249,6 +276,7 @@ const Photo = (props) => {
         <canvas ref={canvasElement} id="target"></canvas>
         <button onClick={detect}>detect</button>
         <button onClick={retry}>retry</button>
+        <button onClick={stop}>stop media</button>
       </div>
       {/* <p>テスト画像</p> */}
       {/* <img src={photo} /> */}

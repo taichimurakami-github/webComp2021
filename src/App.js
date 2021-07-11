@@ -38,9 +38,9 @@ const App = () => {
   });
 
   // useCamera();
-  const activateCamera = () => {
-    useCamera();
-  }
+  // const activateCamera = () => {
+  //   useCamera();
+  // }
 
   const youtubeExecTest = () => {
     searchYoutube();
