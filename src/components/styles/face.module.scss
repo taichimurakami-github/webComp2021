@@ -8,9 +8,12 @@
     display: block;
   }
 
-  video, canvas{
+  video{
     width: 500px;
     height: 500px;
+  }
+  canvas{
+    height: 300px;
   }
   a{
     cursor: pointer;
@@ -40,20 +43,64 @@
   }
 }
 
-.canvas-container-unactive{
+.confirm-wrapper-active{
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.confirm-wrapper-unactive{
   display: none;
 }
 
-.canvas-container-active {
+
+
+.confirm-container {  
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   align-items: center;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  justify-content: space-evenly;
   background: skyblue;
-  width: 1000px;
+  width: 90%;
+  max-width: 800px;
 
   padding: 15px;
+
+  div{
+    width: 50%;
+  }
 }
+
+.confirm-container-panel{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  
+  button{
+    width: 200px;
+    height: 40px;
+    &:first-child{margin-bottom: 50px;}
+  }
+
+  ul{
+    width: 90%;
+    overflow-y: scroll;
+    padding-right: 10px;
+    font-size: 15px;
+  }
+
+  li{
+    display: flex;
+    justify-content: space-between;
+    border-bottom: black 1px solid;
+  }
+}
+

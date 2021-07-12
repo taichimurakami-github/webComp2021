@@ -1,15 +1,10 @@
 import photo from '../images/smile.jpg';
+import loading from '../images/loading-like-mslogo.gif';
 import styles from "./styles/face.module.scss";
 import { useState, useEffect, useRef } from 'react';
-console.log(styles);
-
-const send = () => {
-
-}
-
 
 const main = async (data) => {
-
+  console.log("detect target: ", data)
   const msRest = require("@azure/ms-rest-js");
   const Face = require("@azure/cognitiveservices-face");
   // const { v4: uuid } = require("uuid");
@@ -47,6 +42,7 @@ const main = async (data) => {
     return new Blob([uInt8Array], { type: contentType });
   }
 
+
   const credentials = new msRest.ApiKeyCredentials({ inHeader: { 'Ocp-Apim-Subscription-Key': key } });
   const client = new Face.FaceClient(credentials, endpoint);
   const DETECT_WITH_URL_OPTIONS = {
@@ -54,13 +50,13 @@ const main = async (data) => {
     detectionModel: "detection_01"
   }
 
-
   console.log("phase: DETECTING YOUR FACE...");
   let detected_faces = await client.face.detectWithStream(makeBlob(data), DETECT_WITH_URL_OPTIONS);
+  console.log("detected result :", detected_faces);
 
   //format emotions
   let emotions = "";
-  let emotion_threshold = 0.0;//感情の閾値を設定する変数
+  const emotion_threshold = 0.0;//感情の閾値を設定する変数
   // console.log("faceEmotion Attoributes: ", detected_faces[0].faceAttributes.emotion);
   if (detected_faces[0].faceAttributes.emotion.anger > emotion_threshold) { emotions += "anger,"; }
   if (detected_faces[0].faceAttributes.emotion.contempt > emotion_threshold) { emotions += "contempt,"; }
@@ -71,103 +67,145 @@ const main = async (data) => {
   if (detected_faces[0].faceAttributes.emotion.sadness > emotion_threshold) { emotions += "sadness,"; }
   if (detected_faces[0].faceAttributes.emotion.surprise > emotion_threshold) { emotions += "surprise,"; }
 
+  detected_faces[0].faceAttributes.emotion.analyzed = emotions;
+
   return detected_faces[0];
-
-
-  // const image_base_url = "https://csdx.blob.core.windows.net/resources/Face/Images/";
-  // const person_group_id = uuid();
-  // const image_file_names = [
-  //   // "detection1.jpg",    // single female with glasses
-  //   // "detection2.jpg", // (optional: single man)
-  //   // "detection3.jpg", // (optional: single male construction worker)
-  //   // "detection4.jpg", // (optional: 3 people at cafe, 1 is blurred)
-  //   "detection5.jpg",    // family, woman child man
-  //   // "detection6.jpg"     // elderly couple, male female
-  // ];
-
-  // const image_file_name = image_file_names[0];
-  // const IMAGES_URL = "https://xs12321.xsrv.jp/angry_man_01.jpg";
-  // const DETECT_WITH_URL_OPTIONS = {
-  //   returnFaceAttributes: ["Accessories", "Age", "Blur", "Emotion", "Exposure", "FacialHair", "Gender", "Glasses", "Hair", "HeadPose", "Makeup", "Noise", "Occlusion", "Smile"],
-  //   detectionModel: "detection_01"
-  // }
-  // const returnResult = {}
-  // const DetectFaceExtract = async () => {
-
-  //   console.log("========DETECT FACES========");
-
-  //   //FACE API detectWithUrl
-  //   let detected_faces = await client.face.detectWithUrl(IMAGES_URL, DETECT_WITH_URL_OPTIONS);
-  //   console.log(detected_faces[0]);
-
-  //   //display results
-  //   console.log(detected_faces.length + " face(s) detected from image " + image_file_name + ".");
-  //   console.log("Face attributes for face(s) in " + image_file_name + ":");
-  //   console.log("これは表示される");
-  //   await new Promise(resolve => {
-  //     const face = detected_faces[0];
-  //     //get the bounding box of the face
-  //     console.log("Bounding box:\n  Left: " + face.faceRectangle.left + "\n  Top: " + face.faceRectangle.top + "\n  Width: " + face.faceRectangle.width + "\n  Height: " + face.faceRectangle.height);
-  //     returnResult.bounding = face.faceRectangle;
-
-  //     // Get face other attributes
-  //     console.log("Age: " + face.faceAttributes.age);
-  //     returnResult.age = face.faceAttributes.age;
-
-  //     // Get emotion on the face
-  //     let emotions = "";
-  //     let emotion_threshold = 0.0;//感情の閾値を設定する変数
-  //     console.log("faceEmotion Attoributes: ", face.faceAttributes.emotion);
-  //     if (face.faceAttributes.emotion.anger > emotion_threshold) { emotions += "anger, "; }
-  //     if (face.faceAttributes.emotion.contempt > emotion_threshold) { emotions += "contempt, "; }
-  //     if (face.faceAttributes.emotion.disgust > emotion_threshold) { emotions += "disgust, "; }
-  //     if (face.faceAttributes.emotion.fear > emotion_threshold) { emotions += "fear, "; }
-  //     if (face.faceAttributes.emotion.happiness > emotion_threshold) { emotions += "happiness, "; }
-  //     if (face.faceAttributes.emotion.neutral > emotion_threshold) { emotions += "neutral, "; }
-  //     if (face.faceAttributes.emotion.sadness > emotion_threshold) { emotions += "sadness, "; }
-  //     if (face.faceAttributes.emotion.surprise > emotion_threshold) { emotions += "surprise, "; }
-
-  //     if (emotions.length > 0) {
-  //       console.log("Emotions: " + emotions.slice(0, -2));
-  //       returnResult.emotion = emotions.slice(0, -2);
-  //     }
-  //     else {
-  //       console.log("No emotions detected.");
-  //     }
-
-  //     resolve();
-  //   })
-
-  // }//detectExtract
-
-  //execute detectfunc()
-  // await DetectFaceExtract();
-  // return returnResult;
-
 }
 
 
+const Confirm = (props) => {
+
+  const wrapperClassName = {
+    display: "confirm-wrapper-active",
+    none: "confirm-wrapper-unactive"
+  }
+  const [wrapperClass, setWrapperClass] = useState(wrapperClassName.display)
+
+  const Initial = () => {
+    return (
+      <>
+        <button onClick={execute}>表情分析を行う</button>
+        <button onClick={props.onRetry}>もう一度撮影しなおす</button>
+      </>
+    )
+  }
+
+  const Detecting = (props) => {
+    return <img src={props.gif} />
+  }
+
+  const Detected = (props) => {
+    const f = props.result.faceAttributes;
+    const result = (
+      <ul>
+        <li>
+          <p>顔ID</p>
+          <p>{props.result.faceId}</p>
+        </li>
+        <li>
+          <p>推定年齢</p>
+          <p>{f.age}</p>
+        </li>
+        <li>
+          <p>推定感情</p>
+          <p>{f.emotion.analyzed}</p>
+        </li>
+        <li>
+          <p>推定性別</p>
+          <p>{f.gender}</p>
+        </li>
+        <li>
+          <p>写真のノイズの度合い</p>
+          <p>{f.noise.noiseLevel}</p>
+        </li>
+      </ul>
+    )
+
+    return (
+      <>
+        <h2>---DETECTED RESULT---</h2>
+        {result}
+        <button onClick={props.goToNext}>次に進む</button>
+      </>
+    )
+  }
+
+  const components = {
+    INITIAL: <Initial></Initial>,
+    DETECTING: <Detecting gif={loading}></Detecting>,
+    DETECTED: <Detected goToNext={props.onSave} result={props.result}></Detected>
+  }
+
+  const [state, setState] = useState(components.INITIAL);
+
+  const onChangeComponent = (s) => setState(s)
+
+  const execute = async () => {
+    onChangeComponent(components.DETECTING);
+    await props.onExecute();
+  }
+
+
+  useEffect(() => {
+    if (props.mediaState) {
+      setWrapperClass(wrapperClassName.none);
+    } else {
+      setWrapperClass(wrapperClassName.display);
+    }
+
+    if (props.result !== '') {
+
+      setTimeout(() => {
+        onChangeComponent(components.DETECTED);
+      }, 800);
+    }
+  }, [props.mediaState, props.result])
+
+  return (
+    <div className={styles[wrapperClass]}>
+      <div className={styles["confirm-container"]}>
+        <canvas width={props.attribute.canvas.width} height={props.attribute.canvas.height} ref={props.canvasRef} id="target"></canvas>
+        <div className={styles["confirm-container-panel"]}>
+          {state}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const Photo = (props) => {
+
+  const attributeList = {
+    video: {
+      width: 500,
+      height: 500
+    },
+    canvas: {
+      width: 500,
+      height: 500
+    }
+  }
+
   const videoElement = useRef(null);
   const canvasElement = useRef(null);
   const shutterElement = useRef(null);
 
   const [mediaState, setmediaState] = useState(true);
-  let photoDataURL = '';
+  const [result, setResult] = useState('');
+
   const media = navigator.mediaDevices;
   const userMediaSettings = {
     audio: false,
     video: {
-      width: 500,
-      height: 500,
+      width: attributeList.video.width,
+      height: attributeList.video.height,
       facingMode: "user"
     }
   }
 
   /**
-   * VIDEO STREAMING CODE
+   * VIDEO STREAMING
    */
-
 
   const startMedia = (t) => {
 
@@ -186,7 +224,7 @@ const Photo = (props) => {
           ctx.drawImage(t.video, 0, 0, t.canvas.width, t.canvas.height)
           setTimeout(() => {
             t.video.play();
-          }, 1000);
+          }, 800);
         }
       })
       .catch((err) => {
@@ -195,6 +233,7 @@ const Photo = (props) => {
       });
   }
 
+  //STOP MEDIA
   const stopMedia = (t) => {
     const tracks = t.video.srcObject.getTracks();
     tracks.forEach((track) => {
@@ -205,13 +244,10 @@ const Photo = (props) => {
     return;
   }
 
-  const stop = () => {
-    return setmediaState(false);
-  }
-
-  const retry = () => {
+  //RESTART MEDIA
+  const resumeMedia = () => {
+    setResult('');
     setmediaState(true);
-    return setDisplayCanvas(false);
   }
 
   //control media
@@ -225,10 +261,10 @@ const Photo = (props) => {
       shutter: s
     }
 
-    if(mediaState){
+    if (mediaState) {
       startMedia(settings);
     }
-    else{
+    else {
       stopMedia(settings);
     }
 
@@ -239,45 +275,44 @@ const Photo = (props) => {
   /**
    * UI AND FUNCTIONAL CODE
    */
-
   const backToTop = () => props.onChangeAppStatus({ onDisp: 'TOP' });
-  const [displayCanvas, setDisplayCanvas] = useState(false);
-  const [canvasState, setCanvasState] = useState(styles["canvas-container-unactive"]);
-  const createCanvas = () => {
-    return setDisplayCanvas(true);
-  }
 
   const detect = async () => {
-    photoDataURL = canvasElement.current.toDataURL();
+    const photoDataURL = canvasElement.current.toDataURL();
     console.log("send data: ", photoDataURL);
+
     const result = await main(photoDataURL);
-    console.log("detect result: ", result);
+    console.log("MS FACE API --result-- : ", result);
+    setResult(result);
   }
 
-  useEffect(
-    () => {
-      if (displayCanvas) {
-        setCanvasState(styles['canvas-container-active']);
-      }
-      else {
-        setCanvasState(styles['canvas-container-unactive']);
-      }
-    }
-    , [displayCanvas]);
+  const save = () => {
+    props.onSaveAPIData({ user: result });
+    props.goToNextComponent();
+  }
+
+  const activateConfirmComponent = (result) => {
+    //カメラを止めて、確認画面をオンにする
+    setmediaState(false);
+  }
+
+
 
   return (
     <div className={styles.wrapper}>
       <a onClick={backToTop}>TOP画面に戻る</a>
       <div className={styles["video-container"]}>
         <video ref={videoElement}></video>
-        <button onClick={createCanvas} ref={shutterElement} id="shutter">撮影する</button>
+        <button onClick={activateConfirmComponent} ref={shutterElement} id="shutter">撮影する</button>
       </div>
-      <div className={canvasState}>
-        <canvas ref={canvasElement} id="target"></canvas>
-        <button onClick={detect}>detect</button>
-        <button onClick={retry}>retry</button>
-        <button onClick={stop}>stop media</button>
-      </div>
+      <Confirm
+        canvasRef={canvasElement}
+        onExecute={detect}
+        onRetry={resumeMedia}
+        onSave={save}
+        attribute={attributeList}
+        mediaState={mediaState}
+        result={result}></Confirm>
       {/* <p>テスト画像</p> */}
       {/* <img src={photo} /> */}
 
@@ -285,4 +320,4 @@ const Photo = (props) => {
   )
 }
 
-export { main as MSfaceAPI, send as postToServer, Photo };
+export { Photo };

@@ -1,13 +1,18 @@
 
 import './App.css';
 import { useState, useEffect } from 'react';
-import { MSfaceAPI, Photo } from "./components/face";
+import { Photo } from "./components/face";
 import { searchYoutube } from "./components/youtube";
 
+const componentsID = {
+  PHASE_1: 'TOP',
+  PHASE_2: 'PHOTO',
+  PHASE_3: 'OPTIONS',
+  PHASE_4: 'RESULT'
+}
+
 const TopMenu = (props) => {
-
-
-  const goToPhotoComponent = () => props.onChangeAppStatus({ onDisp: 'PHOTO' })
+  const goToPhotoComponent = () => props.goToNextComponent()
 
   return (
     <div>
@@ -21,49 +26,72 @@ const TopMenu = (props) => {
   )
 }
 
+const Options = (props) => {
+  return (
+    <p>THIS IS OPTIONS COMPONENT!</p>
+  )
+}
+
 
 const App = () => {
 
   //TOP, PHOTO, RESULT
   const [appStatus, setAppStatus] = useState({
-    onDisp: 'TOP',
+    onDisp: componentsID.PHASE_1,
+    displayComponent: null,
     userData: {},
-    searchResult: {}
+    options: {},
+    searchResult: {},
   })
 
-  const [faceInfo, setFaceInfo] = useState({
-    bounding: {},
-    age: null,
-    emotion: null,
-  });
-
-  // useCamera();
-  // const activateCamera = () => {
-  //   useCamera();
-  // }
+  const [searchInfo, setSearchInfo] = useState({});
 
   const youtubeExecTest = () => {
     searchYoutube();
   }
 
-
-  let displayComponent;
-  switch (appStatus.onDisp) {
-    case 'TOP':
-      displayComponent = <TopMenu onChangeAppStatus={setAppStatus}></TopMenu>
-      break;
-    case 'PHOTO':
-      displayComponent = <Photo onChangeAppStatus={setAppStatus}></Photo>
-      break;
-    default:
-      displayComponent = <TopMenu></TopMenu>
-      break;
+  const saveInfoFromAPI = (d) => {
+    setSearchInfo({
+      ...searchInfo, ...d
+    });
   }
+
+  const GOTO_PHASE_1 = () => setAppStatus({ onDisp: componentsID.PHASE_1 });
+  const GOTO_PHASE_2 = () => setAppStatus({ onDisp: componentsID.PHASE_2 });
+  const GOTO_PHASE_3 = () => setAppStatus({ onDisp: componentsID.PHASE_3 });
+  const GOTO_PHASE_4 = () => setAppStatus({ onDisp: componentsID.PHASE_4 });
+
+
+  const componentsHandler = (nowOnDisp) => {
+    let r;
+
+    switch (nowOnDisp) {
+      case componentsID.PHASE_1:
+        r = <TopMenu goToNextComponent={GOTO_PHASE_2} onChangeAppStatus={GOTO_PHASE_2}></TopMenu>
+        break;
+      case componentsID.PHASE_2:
+        r = <Photo goToNextComponent={GOTO_PHASE_3} onChangeAppStatus={setAppStatus} onSaveAPIData={saveInfoFromAPI}></Photo>
+        break;
+      case componentsID.PHASE_3:
+        r = <Options goToNextComponent={GOTO_PHASE_4}></Options>
+        break;
+      default:
+        console.log("appStatus:", appStatus);
+        throw new Error("error at componentsHandler in App.js");
+    }
+
+    return r;
+  }
+
+  // let COMPONENT = componentsHandler(appStatus.onDisp);
+  // useEffect(() => {
+  //   COMPONENT = componentsHandler(appStatus.onDisp);
+  // })
 
   return (
     <div className="App">
       <h1>音楽検索アプリ　テスト</h1>
-      {displayComponent}
+      {componentsHandler(appStatus.onDisp)}
       <p onClick={youtubeExecTest}>youtube test</p>
     </div>
   );
