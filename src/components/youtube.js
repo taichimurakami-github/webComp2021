@@ -1,20 +1,7 @@
-// const jsdom = require('jsdom');
-// const { JSDOM } = jsdom;
-// const dom = new JSDOM(`<html><body><div id="aaa">AAA<div></body></html>`);
-// const jquery = require('jquery');
-// const $ = jquery(dom.window);
-
-import $ from 'jquery';
+import { searchKeywords } from "./searchKeywords";
 
 
 const createSearchQuery = (info) => {
-  const queryData = {
-    genre: {},
-    bgm: {},
-    popular: {},
-    keyword: {},
-    instrumental: {},
-  }
 }
 
 async function search(info) {
@@ -28,17 +15,6 @@ async function search(info) {
       const s = JSON.stringify(res.body, null, "    ");
       console.log(s);
     })
-
-  // $.ajax({
-  //   type: 'GET',
-  //   url: URL2,
-  //   dataType: 'json',
-  //   success: function (data) {
-  //     var s = JSON.stringify(data, null, "    ");
-  //     console.log(s);
-  //   }
-  // });
-
 }
 
 export { search as searchYoutube };
