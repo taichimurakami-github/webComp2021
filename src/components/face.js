@@ -298,7 +298,7 @@ const Photo = (props) => {
    * UI AND FUNCTIONAL CODE
    */
   //TOP画面に戻る
-  const backToTop = () => props.onChangeAppStatus({ onDisp: 'TOP' });
+  const backToTop = () => props.onReset();
 
   //MS face API 実行用関数
   const detect = async () => {

@@ -1,5 +1,5 @@
 export const searchKeywords = {
-  categolizeInfo: {
+  categolize: {
     emotion: {
       neutral: {
         genre: ["pops", "rock", "anime"]
