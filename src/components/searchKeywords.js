@@ -1,16 +1,30 @@
 export const searchKeywords = {
-  fromInfoToAttr: {
+  categolizeInfo: {
     emotion: {
       neutral: {
-        genre: ["pops"]
+        genre: ["pops", "rock", "anime"]
       },
-      anger: {},
-      contempt: {},
-      disgust: {},
-      fear: {},
-      happiness: {},
-      sadness: {},
-      surprise: {},
+      anger: {
+        genre: ["pops", "rock", "anime"]
+      },
+      contempt: {
+        genre: ["pops", "rock", "anime"]
+      },
+      disgust: {
+        genre: ["pops", "rock", "anime"]
+      },
+      fear: {
+        genre: ["pops", "rock", "anime"]
+      },
+      happiness: {
+        genre: ["pops", "rock", "anime"]
+      },
+      sadness: {
+        genre: ["pops", "rock", "anime"]
+      },
+      surprise: {
+        genre: ["pops", "rock", "anime"]
+      },
     },
   },
 
