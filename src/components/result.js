@@ -28,7 +28,7 @@ const Result = (props) => {
   const backToTop = () => props.onReset();
 
   const execute = () => {
-    props.onExecute();
+    // props.onExecute();
     // setResultState(components.loaded);
   }
 

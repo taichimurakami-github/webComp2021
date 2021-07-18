@@ -1,4 +1,4 @@
-import { searchKeywords as words } from "./searchKeywords";
+import { searchData as words } from "./search-data";
 
 
 const createSearchQuery = (info) => {
@@ -21,7 +21,7 @@ const createSearchQuery = (info) => {
 
   //subword検索
   min = 1;
-  
+
 
 
   console.log("genre chosen", chosenGenre);

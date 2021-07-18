@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+$Noto: 'Noto Sans JP', sans-serif;
+
+
+*{
+  text-align: center;
+  font-family: $Noto;
+}
+
+button{
+  background: salmon;
+  width: 200px;
+  // min-height: 35px;
+  padding: 10px;
+  color: white;
+  font-weight: bold;
+  font-size: 2rem;
+  cursor: pointer;
+  border: 0;
+  display: block;
+  margin: auto;
+  box-shadow: 0 0 5px 1px lightgray;
+  border-radius: 7px;
+
+  &:hover{
+    background: darken(gray, 20%);
+  }
+}

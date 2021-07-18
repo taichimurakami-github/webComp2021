@@ -53,7 +53,7 @@ const main = async (data) => {
   detected_faces[0].faceAttributes.emotion.analyzed = emotions;
 
   //オフラインでJSONデータを保存する際の結果用
-  if(config.mode === "DEVELOPMENT" && config.face.createOfflineJSON){
+  if (config.mode === "DEVELOPMENT" && config.face.createOfflineJSON) {
     const offline_json_data = JSON.stringify(detected_faces[0]);
     const offline_json_name = "userdata.json";
     const link = document.createElement("a");
@@ -327,7 +327,7 @@ const Photo = (props) => {
 
   return (
     <div className={styles.wrapper}>
-      <a onClick={backToTop}>TOP画面に戻る</a>
+      <button className={styles["back-to-top"]} onClick={backToTop}>TOP画面に戻る</button>
       <div className={styles["video-container"]}>
         <video ref={videoElement}></video>
         <button onClick={activateConfirmComponent} ref={shutterElement} id="shutter">撮影する</button>

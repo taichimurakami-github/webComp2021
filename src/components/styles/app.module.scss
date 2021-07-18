@@ -1,0 +1,22 @@
+.top-wrapper{
+  font-size: 1.8rem;
+
+  h2{
+    margin-top: 50px;
+    margin-bottom: 30px;
+  }
+}
+
+.cautions{
+  margin: 50px auto 150px;
+  padding: 0 15px;
+  font-size: 1.6rem;
+  display: table;
+
+  li{
+    display: block;
+    margin: auto;
+    text-align: left;
+  }
+  // li{font-size: 14px;}
+}
