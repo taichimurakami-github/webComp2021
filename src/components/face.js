@@ -1,7 +1,8 @@
-import photo from '../images/smile.jpg';
 import loading from '../images/loading-like-mslogo.gif';
+import { config } from '../config';
 import styles from "./styles/face.module.scss";
 import { useState, useEffect, useRef } from 'react';
+// import { input } from '@vladmandic/face-api/dist/tfjs.esm';
 
 const main = async (data) => {
   console.log("detect target: ", data)
@@ -10,24 +11,6 @@ const main = async (data) => {
   // const { v4: uuid } = require("uuid");
   const key = "a27553b0195a46239a6d129bda16169e"
   const endpoint = "https://webcomp2021-taichimurakami.cognitiveservices.azure.com/"
-
-  // rest api calling url
-  // const uriBase = "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/detect";
-
-  // const params_obj = {
-  //   "returnFaceId": "true",
-  //   "returnFaceLandmarks": "false",
-  //   "returnFaceAttributes":
-  //     "age,gender,headPose,smile,facialHair,glasses,emotion," +
-  //     "hair,makeup,occlusion,accessories,blur,exposure,noise"
-  // };
-
-  // const params =
-  //   "returnFaceId=true" +
-  //   "&returnFaceLandmarks=false" +
-  //   "&returnFaceAttributes=" +
-  //   "age,gender,headPose,smile,facialHair,glasses,emotion," +
-  //   "hair,makeup,occlusion,accessories,blur,exposure,noise";
 
   const makeBlob = (d) => {
     let parts = d.split(";base64,");
@@ -50,24 +33,34 @@ const main = async (data) => {
     detectionModel: "detection_01"
   }
 
-  console.log("phase: DETECTING YOUR FACE...");
+  console.log("NOW DETECTING YOUR FACE ...");
   let detected_faces = await client.face.detectWithStream(makeBlob(data), DETECT_WITH_URL_OPTIONS);
   console.log("detected result :", detected_faces);
 
   //format emotions
-  let emotions = "";
+  const emotions = [];
   const emotion_threshold = 0.0;//感情の閾値を設定する変数
   // console.log("faceEmotion Attoributes: ", detected_faces[0].faceAttributes.emotion);
-  if (detected_faces[0].faceAttributes.emotion.anger > emotion_threshold) { emotions += "anger,"; }
-  if (detected_faces[0].faceAttributes.emotion.contempt > emotion_threshold) { emotions += "contempt,"; }
-  if (detected_faces[0].faceAttributes.emotion.disgust > emotion_threshold) { emotions += "disgust,"; }
-  if (detected_faces[0].faceAttributes.emotion.fear > emotion_threshold) { emotions += "fear,"; }
-  if (detected_faces[0].faceAttributes.emotion.happiness > emotion_threshold) { emotions += "happiness,"; }
-  if (detected_faces[0].faceAttributes.emotion.neutral > emotion_threshold) { emotions += "neutral,"; }
-  if (detected_faces[0].faceAttributes.emotion.sadness > emotion_threshold) { emotions += "sadness,"; }
-  if (detected_faces[0].faceAttributes.emotion.surprise > emotion_threshold) { emotions += "surprise,"; }
+  if (detected_faces[0].faceAttributes.emotion.anger > emotion_threshold) { emotions.push("anger"); }
+  if (detected_faces[0].faceAttributes.emotion.contempt > emotion_threshold) { emotions.push("contempt"); }
+  if (detected_faces[0].faceAttributes.emotion.disgust > emotion_threshold) { emotions.push("disgust"); }
+  if (detected_faces[0].faceAttributes.emotion.fear > emotion_threshold) { emotions.push("fear"); }
+  if (detected_faces[0].faceAttributes.emotion.happiness > emotion_threshold) { emotions.push("appiness"); }
+  if (detected_faces[0].faceAttributes.emotion.neutral > emotion_threshold) { emotions.push("neutral"); }
+  if (detected_faces[0].faceAttributes.emotion.sadness > emotion_threshold) { emotions.push("sadness"); }
+  if (detected_faces[0].faceAttributes.emotion.surprise > emotion_threshold) { emotions.push("surprise"); }
 
   detected_faces[0].faceAttributes.emotion.analyzed = emotions;
+
+  //オフラインでJSONデータを保存する際の結果用
+  if(config.mode === "DEVELOPMENT" && config.face.createOfflineJSON){
+    const offline_json_data = JSON.stringify(detected_faces[0]);
+    const offline_json_name = "userdata.json";
+    const link = document.createElement("a");
+    link.href = "data:text/plain," + encodeURIComponent(offline_json_data);
+    link.download = offline_json_name;
+    link.click();
+  }
 
   return detected_faces[0];
 }
@@ -86,6 +79,8 @@ const Confirm = (props) => {
       <>
         <button onClick={execute}>表情分析を行う</button>
         <button onClick={props.onRetry}>もう一度撮影しなおす</button>
+        {/* config.modeがDEVELOPMENTのときのみ表示 */}
+        {(config.mode === "DEVELOPMENT") && <button onClick={nonExecute}>既存のJSONデータでテスト（デバッグ用）</button>}
       </>
     )
   }
@@ -143,6 +138,32 @@ const Confirm = (props) => {
   const execute = async () => {
     onChangeComponent(components.DETECTING);
     await props.onExecute();
+  }
+
+  //for debug only(execute without API: 既に分析にかけてある、保存済みのデータを利用)
+  const nonExecute = async () => {
+    console.log("nonExecute at face.js on Confirm Component ...");
+    const loadJSON = (t) => {
+      return JSON.parse(t);
+    }
+
+    const debugInput = document.createElement("input");
+    debugInput.type = "file";
+    debugInput.click();
+    debugInput.addEventListener("change", e => {
+      var result = e.target.files[0];
+      var reader = new FileReader();
+      reader.readAsText(result);
+
+      // ファイルの中身が読み取られた後に行う処理を定義する。
+      reader.addEventListener("load", () => {
+        const JSON_DATA = loadJSON(reader.result);
+        console.log("use offline json data:");
+        console.log(JSON_DATA);
+        props.debug(JSON_DATA);
+      });
+    })
+
   }
 
 
@@ -208,7 +229,7 @@ const Photo = (props) => {
    */
 
   const startMedia = (t) => {
-
+    //メディアを起動、画面上に表示
     media.getUserMedia(userMediaSettings)
       .then((stream) => {
         console.log(stream);
@@ -235,6 +256,7 @@ const Photo = (props) => {
 
   //STOP MEDIA
   const stopMedia = (t) => {
+    //メディアを終了
     const tracks = t.video.srcObject.getTracks();
     tracks.forEach((track) => {
       track.stop();
@@ -246,7 +268,10 @@ const Photo = (props) => {
 
   //RESTART MEDIA
   const resumeMedia = () => {
+    //取得したデータを初期化
     setResult('');
+
+    //メディアを再開
     setmediaState(true);
   }
 
@@ -275,8 +300,10 @@ const Photo = (props) => {
   /**
    * UI AND FUNCTIONAL CODE
    */
-  const backToTop = () => props.onChangeAppStatus({ onDisp: 'TOP' });
+  //TOP画面に戻る
+  const backToTop = () => props.onReset();
 
+  //MS face API 実行用関数
   const detect = async () => {
     const photoDataURL = canvasElement.current.toDataURL();
     console.log("send data: ", photoDataURL);
@@ -286,16 +313,16 @@ const Photo = (props) => {
     setResult(result);
   }
 
-  const save = () => {
-    props.onSaveAPIData({ user: result });
-    props.goToNextComponent();
-  }
+  //App.js内に取得データを保存し、optionコンポーネントに行く
+  const save = () => props.onChangeAppStatus({ onDisp: "OPTIONS", userData: result });
 
   const activateConfirmComponent = (result) => {
     //カメラを止めて、確認画面をオンにする
     setmediaState(false);
   }
 
+  //デバッグ用、既存の（FACE APIで分析済みの）jsonファイルを使用する >> face apiの利用を回避
+  const debugDetect = (d) => setResult(d);
 
 
   return (
@@ -306,16 +333,15 @@ const Photo = (props) => {
         <button onClick={activateConfirmComponent} ref={shutterElement} id="shutter">撮影する</button>
       </div>
       <Confirm
+        debug={debugDetect}
         canvasRef={canvasElement}
         onExecute={detect}
         onRetry={resumeMedia}
         onSave={save}
         attribute={attributeList}
         mediaState={mediaState}
-        result={result}></Confirm>
-      {/* <p>テスト画像</p> */}
-      {/* <img src={photo} /> */}
-
+        result={result}>
+      </Confirm>
     </div>
   )
 }

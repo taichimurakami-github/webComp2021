@@ -1,20 +1,49 @@
-import { searchKeywords } from "./searchKeywords";
+import { searchKeywords as words } from "./searchKeywords";
 
 
 const createSearchQuery = (info) => {
+  console.log(info);
+  const emotion = words.categolize.emotion.neutral;
+  const lyrics = info.options.lyrics;
+
+  const generateIndex = (min, max) => {
+    let r = Math.floor(Math.random() * (max + 1 - min)) + min;
+    return (r > max) ? r - 1 : r;
+  }
+  const chosenGenre = [];
+
+  //keyword選択
+  let min = 1;
+  let max = emotion.genre.length;
+  let num = Math.floor(Math.random() * (max + 1 - min)) + min;
+  if (num > max) num--;
+  chosenGenre[0] = words.genre[emotion.genre[num]].keyword[0];
+
+  //subword検索
+  min = 1;
+  
+
+
+  console.log("genre chosen", chosenGenre);
+  // let a = chosenGenre.keyword[0];
+  // console.log(a, generateIndex(1, chosenGenre.keyword.length));
+  return chosenGenre;
 }
 
-async function search(info) {
+const search = async (info) => {
   const API_KEY = "AIzaSyAJVy80IB8wtbJwWOok9FgmwQfRXGyaBF8";
-  const URL = 'https://www.googleapis.com/youtube/v3/videos?id=bHQqvYy5KYo&part=snippet,contentDetails,statistics,status&key=' + API_KEY;
-  const URL2 = 'https://www.googleapis.com/youtube/v3/search?part=snippet&order=rating&maxResults=2&key=' + API_KEY + "&q=ジブリ リラックス";
+  // const URL = 'https://www.googleapis.com/youtube/v3/videos?id=bHQqvYy5KYo&part=snippet,contentDetails,statistics,status&key=' + API_KEY;
+  let URL = 'https://www.googleapis.com/youtube/v3/search?part=snippet&order=rating&maxResults=2&key=' + API_KEY + "&q=" + createSearchQuery(info);
 
-  await fetch(URL2)
+  let result;
+  await fetch(URL)
     .then(res => {
       console.log(res);
-      const s = JSON.stringify(res.body, null, "    ");
-      console.log(s);
-    })
+      console.log(res.body);
+      result = JSON.stringify(res.body, null, "    ");
+      console.log(result);
+    });
+  return result;
 }
 
 export { search as searchYoutube };

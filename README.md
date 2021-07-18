@@ -1,15 +1,30 @@
 # Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).  
+このアプリケーションはcreate-react-appを用いて作成されています。Reactについてはfacebook公式ドキュメントをご覧ください。
 
-## memo for lecture
+## Ready for start
+まだコードのデータがない場合、以下のコマンドでgit cloneしてください。
 
-ウリのポイント
+### `git clone git@github.com:taichimurakami-github/webComp2021.git`
 
-+ 新しいジャンルの音楽を開拓する（おすすめ制度とは異なり、ラジオで唐突に聴くかのような感じ？）
-+ Youtube以外にも検索できる予定
-+ 
+cloneが終わった、もしくは、srcフォルダとpackage.json, package-lock.jsonが既に手元にある場合、以下のコマンドでビルドに必要なモジュールをダウンロードしてください。
 
+### `npm i` または `npm install`
+
+すべてのモジュールのダウンロードには10分程度かかります。  
+ここまでで準備は完了です。以下のコマンドでローカルサーバー上でのアプリケーションを実行することができます。
+
+### `npm start` または `npm run start`
+
+アプリケーションのビルドデータ（サーバー上に設置するような、静的HTMLとJSファイル群）に変換する場合、以下のコマンドを実行してください。
+
+### `npm run build`
+
+上記のコマンドを行った場合、buildフォルダが新たに作成され、その中にアプリケーションの中身がバンドルされたファイルが生成されます。  
+実行する場合は**build/index.html**を開いてください。ただし、dependenciesなどの関係上、ローカル環境で開くとエラーが出る可能性があります。**npm start**コマンドでの動的実行をおすすめします。
+
+### 説明は異常です。その他のコマンドなどは以下に列挙してあります（原文のままです）。
 
 ## Available Scripts
 
