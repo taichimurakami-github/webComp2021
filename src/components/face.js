@@ -14,20 +14,20 @@ const main = async (data) => {
   // rest api calling url
   // const uriBase = "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/detect";
 
-  const params_obj = {
-    "returnFaceId": "true",
-    "returnFaceLandmarks": "false",
-    "returnFaceAttributes":
-      "age,gender,headPose,smile,facialHair,glasses,emotion," +
-      "hair,makeup,occlusion,accessories,blur,exposure,noise"
-  };
+  // const params_obj = {
+  //   "returnFaceId": "true",
+  //   "returnFaceLandmarks": "false",
+  //   "returnFaceAttributes":
+  //     "age,gender,headPose,smile,facialHair,glasses,emotion," +
+  //     "hair,makeup,occlusion,accessories,blur,exposure,noise"
+  // };
 
-  const params =
-    "returnFaceId=true" +
-    "&returnFaceLandmarks=false" +
-    "&returnFaceAttributes=" +
-    "age,gender,headPose,smile,facialHair,glasses,emotion," +
-    "hair,makeup,occlusion,accessories,blur,exposure,noise";
+  // const params =
+  //   "returnFaceId=true" +
+  //   "&returnFaceLandmarks=false" +
+  //   "&returnFaceAttributes=" +
+  //   "age,gender,headPose,smile,facialHair,glasses,emotion," +
+  //   "hair,makeup,occlusion,accessories,blur,exposure,noise";
 
   const makeBlob = (d) => {
     let parts = d.split(";base64,");
