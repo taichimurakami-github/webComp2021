@@ -4,6 +4,8 @@ import { Photo } from "./components/face";
 import { searchYoutube } from "./components/youtube";
 import { Options } from "./components/options";
 import { Result } from './components/result';
+import { openWheather } from './components/openweather';
+openWheather();
 
 //styles
 import "./components/styles/app.common.scss";
