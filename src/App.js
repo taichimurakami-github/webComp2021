@@ -4,8 +4,7 @@ import { Photo } from "./components/face";
 import { searchYoutube } from "./components/youtube";
 import { Options } from "./components/options";
 import { Result } from './components/result';
-import { openWheather } from './components/openweather';
-openWheather();
+import { openWeather } from './components/openweather';
 
 //styles
 import "./components/styles/app.common.scss";
@@ -76,7 +75,7 @@ const App = () => {
         r = <Options onChangeAppStatus={changeAppState} onReset={resetAppState} data={appStatus.userData} />
         break;
       case componentsID.PHASE_4:
-        r = <Result onChangeAppStatus={changeAppState} onReset={resetAppState} onExecute={executeSearch} />
+        r = <Result onChangeAppStatus={changeAppState} onReset={resetAppState} onExecute={executeSearch} data={appStatus.searchResult} />
         break;
       default:
         // console.log("appStatus:", appStatus);
@@ -96,7 +95,9 @@ const App = () => {
     <div className="App">
       <h1>感情推定検索サービス（音楽）</h1>
       {componentsHandler(appStatus.onDisp)}
-    </div>
+      <button onClick={openWeather}>ONE CALL API TEST BUTTON</button>
+      {/* <button onClick={searchYoutube}>YOUTUBE DATA API v3 TEST BUTTON</button> */}
+    </div >
   );
 }
 export default App;

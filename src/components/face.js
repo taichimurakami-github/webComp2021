@@ -45,7 +45,7 @@ const main = async (data) => {
   if (detected_faces[0].faceAttributes.emotion.contempt > emotion_threshold) { emotions.push("contempt"); }
   if (detected_faces[0].faceAttributes.emotion.disgust > emotion_threshold) { emotions.push("disgust"); }
   if (detected_faces[0].faceAttributes.emotion.fear > emotion_threshold) { emotions.push("fear"); }
-  if (detected_faces[0].faceAttributes.emotion.happiness > emotion_threshold) { emotions.push("appiness"); }
+  if (detected_faces[0].faceAttributes.emotion.happiness > emotion_threshold) { emotions.push("happiness"); }
   if (detected_faces[0].faceAttributes.emotion.neutral > emotion_threshold) { emotions.push("neutral"); }
   if (detected_faces[0].faceAttributes.emotion.sadness > emotion_threshold) { emotions.push("sadness"); }
   if (detected_faces[0].faceAttributes.emotion.surprise > emotion_threshold) { emotions.push("surprise"); }
@@ -103,7 +103,7 @@ const Confirm = (props) => {
         </li>
         <li>
           <p>推定感情</p>
-          <p>{f.emotion.analyzed}</p>
+          <p>{f.emotion.analyzed.map((val, index) => { return `${val} ` })}</p>
         </li>
         <li>
           <p>推定性別</p>
@@ -120,7 +120,7 @@ const Confirm = (props) => {
       <>
         <h2>---DETECTED RESULT---</h2>
         {result}
-        <button onClick={props.goToNext}>次に進む</button>
+        <button onClick={props.onSave}>次に進む</button>
       </>
     )
   }
@@ -128,7 +128,7 @@ const Confirm = (props) => {
   const components = {
     INITIAL: <Initial></Initial>,
     DETECTING: <Detecting gif={loading}></Detecting>,
-    DETECTED: <Detected goToNext={props.onSave} result={props.result}></Detected>
+    DETECTED: <Detected onSave={props.onSave} result={props.result}></Detected>
   }
 
   const [state, setState] = useState(components.INITIAL);

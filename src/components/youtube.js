@@ -1,49 +1,86 @@
-import { searchData as words } from "./search-data";
+import { searchDataList as words } from "./search-data";
+import { openWeather } from "./openweather";
 
-
-const createSearchQuery = (info) => {
-  console.log(info);
-  const emotion = words.categolize.emotion.neutral;
+const createSearchQuery = async (info) => {
+  const weather = await openWeather();
+  const emotion = info.userData.faceAttributes.emotion.analyzed;
   const lyrics = info.options.lyrics;
-
-  const generateIndex = (min, max) => {
-    let r = Math.floor(Math.random() * (max + 1 - min)) + min;
-    return (r > max) ? r - 1 : r;
+  const queryData = {
+    genre: "",
+    environment: {
+      season: "",
+      time: "",
+    },
+    subwords: "",
+    options: {
+      instrumental: ""
+    }
   }
-  const chosenGenre = [];
 
-  //keyword選択
-  let min = 1;
-  let max = emotion.genre.length;
-  let num = Math.floor(Math.random() * (max + 1 - min)) + min;
-  if (num > max) num--;
-  chosenGenre[0] = words.genre[emotion.genre[num]].keyword[0];
+  /**
+   * 配列を受け取り、その中の要素をランダムで返す
+   * @param {array} t 
+   * @returns {number}
+   */
+  const getRandomValueFromArray = (arr) => {
+    if (!Array.isArray(arr)) {
+      console.log("arg is not array: ", arr);
+      throw new Error("An Error has occured at getRandomValueFromArray(): arg is not array");
+    }
+    const max = arr.length - 1;
+    const min = 0;
+    //index を乱数で決定
+    let i = (max === 0) ? 0 : Math.floor(Math.random() * (max - min) + min);
 
-  //subword検索
-  min = 1;
+    return arr[i];
+  }
 
+  //genreをゲット
+  const selected_emotion = getRandomValueFromArray(emotion);
+  queryData.genre = getRandomValueFromArray(words.emotion[selected_emotion]);
+  console.log("genre this time:", queryData.genre);
+  //environmentをゲット
+  if (words.genre[queryData.genre].availability.season) {
+    //seasonをゲット
+    queryData.environment.season = getRandomValueFromArray(words.environment.season[weather.season]);
+  }
 
+  if (words.genre[queryData.genre].availability.time) {
+    //timeをゲット
+    queryData.environment.time = getRandomValueFromArray(words.environment.time[weather.time]);
+  }
 
-  console.log("genre chosen", chosenGenre);
-  // let a = chosenGenre.keyword[0];
-  // console.log(a, generateIndex(1, chosenGenre.keyword.length));
-  return chosenGenre;
+  //instrumentalをゲット
+  if (words.genre[queryData.genre].availability.instrumental && !info.options.lyrics) {
+    queryData.options.instrumental = getRandomValueFromArray(words.options.instrumental);
+  }
+
+  console.log("selected query data result:", queryData);
+  return queryData.genre + " " + queryData.environment.season + " " + queryData.environment.time + " " + queryData.subwords + " " + queryData.options.instrumental;
 }
 
 const search = async (info) => {
   const API_KEY = "AIzaSyAJVy80IB8wtbJwWOok9FgmwQfRXGyaBF8";
-  // const URL = 'https://www.googleapis.com/youtube/v3/videos?id=bHQqvYy5KYo&part=snippet,contentDetails,statistics,status&key=' + API_KEY;
-  let URL = 'https://www.googleapis.com/youtube/v3/search?part=snippet&order=rating&maxResults=2&key=' + API_KEY + "&q=" + createSearchQuery(info);
+  const MAX_RESULTS = 10;
+  const QUERY = await createSearchQuery(info);
 
-  let result;
-  await fetch(URL)
+  if (typeof (QUERY) !== "string") {
+    console.log("invalid query type : ", typeof (QUERY));
+    throw new Error("An error has occured when creating search query string");
+  }
+
+  const URL = `https://www.googleapis.com/youtube/v3/search?part=snippet&order=rating&maxResults=${MAX_RESULTS}&key=${API_KEY}&q=${QUERY}`;
+  const searchResult = await fetch(URL)
     .then(res => {
-      console.log(res);
-      console.log(res.body);
-      result = JSON.stringify(res.body, null, "    ");
-      console.log(result);
+      return res.json();
+    })
+    .then(result => {
+      return JSON.parse(JSON.stringify(result));
     });
-  return result;
+
+  console.log("search url:", URL);
+  console.log(searchResult);
+  return searchResult;
 }
 
 export { search as searchYoutube };

@@ -11,9 +11,21 @@ const Loading = () => {
   )
 }
 
-const Loaded = () => {
+const Loaded = (props) => {
+
   return (
-    <></>
+    <ul>
+      {props.data.map((val, index) => {
+        return (
+          <li>
+            <h3>{val.snippet.title}</h3>
+            <img src={val.snippet.thumbnails.medium.url} />
+            <a href={`https://www.youtube.com/watch?v=${val.id.videoId}`}>Youtubeで見る</a>
+            <p>{val.snippet.publishTime}</p>
+          </li>
+        )
+      })}
+    </ul>
   );
 }
 
@@ -21,20 +33,27 @@ const Loaded = () => {
 const Result = (props) => {
   const components = {
     loading: <Loading></Loading>,
-    loaded: <Loaded></Loaded>
+    loaded: <Loaded data={props.data}></Loaded>
   }
   const [resultState, setResultState] = useState(components.loading);
 
   const backToTop = () => props.onReset();
 
-  const execute = () => {
-    // props.onExecute();
-    // setResultState(components.loaded);
+  const execute = async () => {
+    const searchResult = await props.onExecute();
+    console.log(searchResult);
+    props.onChangeAppStatus({ searchResult: searchResult.items })
   }
 
   useEffect(() => {
     execute();
   }, []);
+
+  useEffect(() => {
+    if (props.data !== null) {
+      setResultState(components.loaded);
+    }
+  }, [props.data])
 
   return (
     <>
