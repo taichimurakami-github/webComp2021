@@ -15,6 +15,7 @@
     margin-top: 20px;
     margin-bottom: 32px;
 
+    &:disabled{background: gray;}
   }
 }
 
@@ -82,15 +83,20 @@
 
   ul{
     width: 90%;
+  }
+
+
+
+  .result{
     overflow-y: scroll;
     padding-right: 10px;
     font-size: 15px;
-  }
 
-  li{
-    display: flex;
-    justify-content: space-between;
-    border-bottom: black 1px solid;
+    li{
+      display: flex;
+      justify-content: space-between;
+      border-bottom: black 1px solid;
+    }
   }
 
   button{
@@ -98,3 +104,7 @@
   }
 }
 
+
+.advise{
+  display: none;
+}

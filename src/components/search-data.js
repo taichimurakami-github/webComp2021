@@ -28,27 +28,27 @@ const environmentDataList = {
 const searchDataList = {
   emotion: {
     //通常状態
-    neutral: ["pops", "rock", "anime", "jazz", "heavyMetal", "folk", "regae", "game", "vocaloid"],
+    neutral: ["pops", "jazz","rock","heavyMetal", "folk", "regae", "anime",  "game", "vocaloid"],
     //怒り
-    anger: ["pops", "rock", "anime"],
+    anger: ["pops", "jazz", "folk", "regae", "classic"],
     //侮蔑
     contempt: ["pops", "rock", "anime"],
     //嫌悪
-    disgust: ["pops", "rock", "classic", "anime"],
+    disgust: ["pops", "classic", "jazz", "folk", "regae"],
     //恐怖
-    fear: ["pops", "rock", "anime", "heavyMetal"],
+    fear: ["pops", "rock", "anime", "heavyMetal", "vocaloid"],
     //幸せ
-    happiness: ["pops", "rock", "anime"],
+    happiness: ["pops", "rock", "jazz", "anime", "game", "vocaloid"],
     //悲しみ
-    sadness: ["pops", "rock", "anime"],
+    sadness: ["pops", "rock", "anime", "game", "vocaloid", "heavyMetal"],
     //驚き
-    surprise: ["pops", "rock", "anime"],
+    surprise: ["pops", "rock", "heavyMetal",  "anime", "game", "vocaloid"],
   },
 
   genre: {
     //正統派ジャンル系
     pops: {
-      keyword: ["j-pop", "k-pop", "pops"],
+      keyword: ["j-pop", "k-pop", "pops", "ポップス"],
       attribute: ["popular", "media", "arrange", "situation"],
       availability: {
         season: true,
@@ -57,7 +57,7 @@ const searchDataList = {
       }
     },
     rock: {
-      keyword: ["ロック"],
+      keyword: ["ロック", "rock music",],
       attribute: ["popular", "age", "new"],
       availability: {
         season: false,

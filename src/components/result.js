@@ -1,4 +1,3 @@
-import { searchYoutube } from "./youtube";
 import { useState, useEffect } from "react";
 import loading from "../images/loading-like-youtube.gif";
 

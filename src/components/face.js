@@ -33,36 +33,42 @@ const main = async (data) => {
     detectionModel: "detection_01"
   }
 
-  console.log("NOW DETECTING YOUR FACE ...");
-  let detected_faces = await client.face.detectWithStream(makeBlob(data), DETECT_WITH_URL_OPTIONS);
-  console.log("detected result :", detected_faces);
+  try{
+    console.log("NOW DETECTING YOUR FACE ...");
+    let detected_faces = await client.face.detectWithStream(makeBlob(data), DETECT_WITH_URL_OPTIONS);
+    console.log("detected result :", detected_faces);
+  
+    //format emotions
+    const emotions = [];
+    const emotion_threshold = 0.0;//感情の閾値を設定する変数
+    // console.log("faceEmotion Attoributes: ", detected_faces[0].faceAttributes.emotion);
+    if (detected_faces[0].faceAttributes.emotion.anger > emotion_threshold) { emotions.push("anger"); }
+    if (detected_faces[0].faceAttributes.emotion.contempt > emotion_threshold) { emotions.push("contempt"); }
+    if (detected_faces[0].faceAttributes.emotion.disgust > emotion_threshold) { emotions.push("disgust"); }
+    if (detected_faces[0].faceAttributes.emotion.fear > emotion_threshold) { emotions.push("fear"); }
+    if (detected_faces[0].faceAttributes.emotion.happiness > emotion_threshold) { emotions.push("happiness"); }
+    if (detected_faces[0].faceAttributes.emotion.neutral > emotion_threshold) { emotions.push("neutral"); }
+    if (detected_faces[0].faceAttributes.emotion.sadness > emotion_threshold) { emotions.push("sadness"); }
+    if (detected_faces[0].faceAttributes.emotion.surprise > emotion_threshold) { emotions.push("surprise"); }
+  
+    detected_faces[0].faceAttributes.emotion.analyzed = emotions;
+  
+    //オフラインでJSONデータを保存する際の結果用
+    if (config.mode === "DEVELOPMENT" && config.face.createOfflineJSON) {
+      const offline_json_data = JSON.stringify(detected_faces[0]);
+      const offline_json_name = "userdata.json";
+      const link = document.createElement("a");
+      link.href = "data:text/plain," + encodeURIComponent(offline_json_data);
+      link.download = offline_json_name;
+      link.click();
+    }
+  
+    return detected_faces[0];
 
-  //format emotions
-  const emotions = [];
-  const emotion_threshold = 0.0;//感情の閾値を設定する変数
-  // console.log("faceEmotion Attoributes: ", detected_faces[0].faceAttributes.emotion);
-  if (detected_faces[0].faceAttributes.emotion.anger > emotion_threshold) { emotions.push("anger"); }
-  if (detected_faces[0].faceAttributes.emotion.contempt > emotion_threshold) { emotions.push("contempt"); }
-  if (detected_faces[0].faceAttributes.emotion.disgust > emotion_threshold) { emotions.push("disgust"); }
-  if (detected_faces[0].faceAttributes.emotion.fear > emotion_threshold) { emotions.push("fear"); }
-  if (detected_faces[0].faceAttributes.emotion.happiness > emotion_threshold) { emotions.push("happiness"); }
-  if (detected_faces[0].faceAttributes.emotion.neutral > emotion_threshold) { emotions.push("neutral"); }
-  if (detected_faces[0].faceAttributes.emotion.sadness > emotion_threshold) { emotions.push("sadness"); }
-  if (detected_faces[0].faceAttributes.emotion.surprise > emotion_threshold) { emotions.push("surprise"); }
-
-  detected_faces[0].faceAttributes.emotion.analyzed = emotions;
-
-  //オフラインでJSONデータを保存する際の結果用
-  if (config.mode === "DEVELOPMENT" && config.face.createOfflineJSON) {
-    const offline_json_data = JSON.stringify(detected_faces[0]);
-    const offline_json_name = "userdata.json";
-    const link = document.createElement("a");
-    link.href = "data:text/plain," + encodeURIComponent(offline_json_data);
-    link.download = offline_json_name;
-    link.click();
+  }catch(e){
+    console.error("顔を検知できませんでした。");
+    return undefined;
   }
-
-  return detected_faces[0];
 }
 
 
@@ -80,7 +86,7 @@ const Confirm = (props) => {
         <button onClick={execute}>表情分析を行う</button>
         <button onClick={props.onRetry}>もう一度撮影しなおす</button>
         {/* config.modeがDEVELOPMENTのときのみ表示 */}
-        {(config.mode === "DEVELOPMENT") && <button onClick={nonExecute}>既存のJSONデータでテスト（デバッグ用）</button>}
+        {(config.mode === "DEVELOPMENT") && <button onClick={nonExecute}>デバッグ用モードで行う</button>}
       </>
     )
   }
@@ -89,10 +95,24 @@ const Confirm = (props) => {
     return <img src={props.gif} />
   }
 
+  const Failed = () => {
+    return(
+      <>
+        <p>顔の検出に失敗しました。もういちと顔検出をやり直してください。</p>
+        <ul className="advise">
+          <li>うまく行かない時は...</li>
+          <li>マスクなどで顔が隠れていませんか？</li>
+          <li>明るすぎたり、暗すぎる環境では、顔を判別できないことがあります。</li>
+        </ul>
+        <button onClick={props.onRetry}>もう一度撮影しなおす</button>
+      </>
+    )
+  }
+
   const Detected = (props) => {
     const f = props.result.faceAttributes;
     const result = (
-      <ul>
+      <ul className="result">
         <li>
           <p>顔ID</p>
           <p>{props.result.faceId}</p>
@@ -128,7 +148,8 @@ const Confirm = (props) => {
   const components = {
     INITIAL: <Initial></Initial>,
     DETECTING: <Detecting gif={loading}></Detecting>,
-    DETECTED: <Detected onSave={props.onSave} result={props.result}></Detected>
+    FAILED: <Failed></Failed>,
+    DETECTED: <Detected onSave={props.onSave} result={props.result}></Detected>,
   }
 
   const [state, setState] = useState(components.INITIAL);
@@ -140,8 +161,18 @@ const Confirm = (props) => {
     await props.onExecute();
   }
 
-  //for debug only(execute without API: 既に分析にかけてある、保存済みのデータを利用)
+  //for debug only(execute without API: 既に分析にかけてある、保存済みのデータを利用もしくはエラー時のテスト)
   const nonExecute = async () => {
+    
+    if(config.mode === "DEVELOPMENT" && config.face.detectErrorDebug){
+      setTimeout(() => {
+        onChangeComponent(components.FAILED);
+      }, 800);
+
+      return;
+    } 
+
+
     console.log("nonExecute at face.js on Confirm Component ...");
     const loadJSON = (t) => {
       return JSON.parse(t);
@@ -174,12 +205,20 @@ const Confirm = (props) => {
       setWrapperClass(wrapperClassName.display);
     }
 
-    if (props.result !== '') {
+    if (props.result !== '' && props.result !== undefined) {
 
       setTimeout(() => {
         onChangeComponent(components.DETECTED);
       }, 800);
     }
+
+    //顔検出に失敗
+    if(props.result !== '' && props.result === undefined){
+      setTimeout(() => {
+        onChangeComponent(components.FAILED);
+      }, 800);
+    }
+
   }, [props.mediaState, props.result])
 
   return (
@@ -213,6 +252,7 @@ const Photo = (props) => {
 
   const [mediaState, setmediaState] = useState(true);
   const [result, setResult] = useState('');
+  const [shutterState, setShutterState] = useState(false);
 
   const media = navigator.mediaDevices;
   const userMediaSettings = {
@@ -232,7 +272,8 @@ const Photo = (props) => {
     //メディアを起動、画面上に表示
     media.getUserMedia(userMediaSettings)
       .then((stream) => {
-        console.log(stream);
+        // console.log(stream);
+        setShutterState(true);
         t.video.srcObject = stream;
         t.video.onloadedmetadata = (e) => {
           t.video.play();
@@ -240,16 +281,20 @@ const Photo = (props) => {
 
         t.shutter.onclick = () => {
           const ctx = t.canvas.getContext("2d");
-
+          setShutterState(false);
           t.video.pause();
           ctx.drawImage(t.video, 0, 0, t.canvas.width, t.canvas.height)
-          setTimeout(() => {
-            t.video.play();
-          }, 800);
+          // setTimeout(() => {
+          //   t.video.play();
+          // }, 800);
         }
       })
       .catch((err) => {
+        //navigator.getUserMediaに失敗
         console.error('mediaDevice.getUserMedia() error:', err);
+        console.log("restart media");
+        setShutterState(false);
+        startMedia(t);
         return;
       });
   }
@@ -316,7 +361,7 @@ const Photo = (props) => {
   //App.js内に取得データを保存し、optionコンポーネントに行く
   const save = () => props.onChangeAppStatus({ onDisp: "OPTIONS", userData: result });
 
-  const activateConfirmComponent = (result) => {
+  const activateConfirmComponent = () => {
     //カメラを止めて、確認画面をオンにする
     setmediaState(false);
   }
@@ -330,7 +375,7 @@ const Photo = (props) => {
       <button className={styles["back-to-top"]} onClick={backToTop}>TOP画面に戻る</button>
       <div className={styles["video-container"]}>
         <video ref={videoElement}></video>
-        <button onClick={activateConfirmComponent} ref={shutterElement} id="shutter">撮影する</button>
+        <button onClick={activateConfirmComponent} ref={shutterElement} id="shutter" >撮影する</button>
       </div>
       <Confirm
         debug={debugDetect}

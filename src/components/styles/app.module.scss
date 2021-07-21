@@ -2,7 +2,6 @@
   font-size: 1.8rem;
 
   h2{
-    margin-top: 50px;
     margin-bottom: 30px;
   }
 }
@@ -18,5 +17,18 @@
     margin: auto;
     text-align: left;
   }
-  // li{font-size: 14px;}
+}
+
+.logo{
+  margin: 30px auto 50px;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  width: 500px;
+  font-weight: bold;
+  font-size: 2.5rem;
+
+  .yt-logo{
+    width: 200px;
+  }
 }

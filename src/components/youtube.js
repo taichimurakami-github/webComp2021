@@ -39,13 +39,16 @@ const createSearchQuery = async (info) => {
   const selected_emotion = getRandomValueFromArray(emotion);
   queryData.genre = getRandomValueFromArray(words.emotion[selected_emotion]);
   console.log("genre this time:", queryData.genre);
+
+  const boolean_array = [true, false, false, true, false, false];
+
   //environmentをゲット
-  if (words.genre[queryData.genre].availability.season) {
+  if (words.genre[queryData.genre].availability.season && getRandomValueFromArray(boolean_array)) {
     //seasonをゲット
     queryData.environment.season = getRandomValueFromArray(words.environment.season[weather.season]);
   }
 
-  if (words.genre[queryData.genre].availability.time) {
+  if (words.genre[queryData.genre].availability.time && getRandomValueFromArray(boolean_array)) {
     //timeをゲット
     queryData.environment.time = getRandomValueFromArray(words.environment.time[weather.time]);
   }
@@ -69,7 +72,7 @@ const search = async (info) => {
     throw new Error("An error has occured when creating search query string");
   }
 
-  const URL = `https://www.googleapis.com/youtube/v3/search?part=snippet&order=rating&maxResults=${MAX_RESULTS}&key=${API_KEY}&q=${QUERY}`;
+  const URL = `https://www.googleapis.com/youtube/v3/search?part=snippet&order=relevance&maxResults=${MAX_RESULTS}&key=${API_KEY}&q=${QUERY}`;
   const searchResult = await fetch(URL)
     .then(res => {
       return res.json();
