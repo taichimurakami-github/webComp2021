@@ -35,7 +35,7 @@ const TopMenu = (props) => {
 
   });
 
-  const reloadPage = () => location.reload();
+  const reloadPage = () => window.location.reload();
 
   const PermissionClear = () => {
     return (
