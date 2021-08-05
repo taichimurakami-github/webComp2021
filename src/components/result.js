@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import loading from "../images/loading-like-youtube.gif";
+import "./styles/result.scss";
 
 const Loading = () => {
   return (
     <div>
+      <h2>検索結果を取得しています...</h2>
       <img src={loading}></img>
-      <p>Youtubeを検索中...</p>
     </div>
   )
 }
@@ -14,13 +15,14 @@ const Loaded = (props) => {
 
   return (
     <ul>
+      <h2 className={"pageTitle"}>検索結果はこちらです！</h2>
       {props.data.map((val, index) => {
         return (
-          <li>
-            <h3>{val.snippet.title}</h3>
-            <img src={val.snippet.thumbnails.medium.url} />
-            <a href={`https://www.youtube.com/watch?v=${val.id.videoId}`}>Youtubeで見る</a>
-            <p>{val.snippet.publishTime}</p>
+          <li className={"list"}>
+            <h3 className={"movieTitle"}>{val.snippet.title}</h3>
+            <img className={"img"} src={val.snippet.thumbnails.medium.url} />
+            <a className={"link"} href={`https://www.youtube.com/watch?v=${val.id.videoId}`}>Youtubeで見る</a>
+            <p>投稿日時：{val.snippet.publishTime}</p>
           </li>
         )
       })}
@@ -56,7 +58,6 @@ const Result = (props) => {
 
   return (
     <>
-      <p>this is RESULT component</p>
       <button onClick={backToTop}>TOPページに戻る</button>
       {resultState}
     </>

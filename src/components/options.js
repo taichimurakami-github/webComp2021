@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import styles from "./styles/options.module.scss";
+import { useRef, useState } from "react";
+import "./styles/options.scss";
 
 const Options = (props) => {
 
@@ -9,11 +9,12 @@ const Options = (props) => {
   return (
     <>
       <h2>これから検索します！</h2>
-      <p>その前に最後の質問です。歌詞は欲しいですか？</p>
+      <button onClick={normal}>検索画面へ進む</button>
+      {/* <p>その前に最後の質問です。歌詞は欲しいですか？</p>
       <div className={styles["btn-wrapper"]}>
         <button onClick={normal}>歌詞があったほうがいい</button>
         <button onClick={instrumental}>歌詞はないほうがいい</button>
-      </div>
+      </div> */}
     </>
   )
 }

@@ -5,7 +5,6 @@ import youtubeLogo from "./images/yt_logo_rgb_light.png";
 import { searchYoutube } from "./components/youtube";
 import { Options } from "./components/options";
 import { Result } from './components/result';
-import { openWeather } from './components/openweather';
 
 //styles
 import "./components/styles/app.common.scss";
@@ -20,7 +19,43 @@ const componentsID = {
 }
 
 const TopMenu = (props) => {
+  const [permissionState, setPermissionState] = useState(false)
+
   const changeComponent = () => props.onChangeAppStatus({ onDisp: 'PHOTO' });
+  navigator.permissions.query({ name: 'geolocation' }).then(function (result) {
+    result.state === "granted" ? setPermissionState(true) : navigator.geolocation.getCurrentPosition(success, error);
+
+    function success() {
+      return
+    }
+
+    function error() {
+      return;
+    }
+
+  });
+
+  const reloadPage = () => location.reload();
+
+  const PermissionClear = () => {
+    return (
+      <>
+        <p>それでは、まずは顔画像の撮影から始めましょう。以下のボタンをクリックしてください。</p>
+        <b>次のページでは、カメラの利用が必要です。ページ切り替え後、カメラの利用を許可してください。</b>
+        <button onClick={changeComponent}>表情を撮影する</button>
+      </>
+    )
+  }
+
+  const PermissionDenied = () => {
+    return (
+      <>
+        <p>本サービスには、現在地の利用が必要です。現在地の使用許可をオンにしたうえ、下のボタンを押してください。</p>
+        <button onClick={reloadPage}>現在地の利用を許可しました</button>
+      </>
+    )
+  }
+
   return (
     <div className={styles["top-wrapper"]}>
       <h2>Youtube音楽検索サービスにようこそ！</h2>
@@ -33,8 +68,7 @@ const TopMenu = (props) => {
         <li>4. 本サービスは、facebook社のReactフレームワーク、Microsoft者のAzure Face API、openweather one call API、Google社のYoutube Data API v3を使用しています。</li>
         <li>5. 本サービスは、東北大学内の講義課題の一環で作成されたものです。本サービスの利用により生じたいかなる事態に対しても、責任を負いかねます。</li>
       </ul>
-      <p>それでは、まずは顔画像の撮影から始めましょう。以下のボタンをクリックしてください。</p>
-      <button onClick={changeComponent}>表情を撮影する</button>
+      {permissionState ? <PermissionClear /> : <PermissionDenied />}
       <p>2021 Taichi Murakami All rights reserved.</p>
     </div>
   )

@@ -3,7 +3,7 @@ export const config = {
 
   face: {
     createOfflineJSON: false,
-    detectErrorDebug: true,
+    detectErrorDebug: false,
   }
 
 };
