@@ -16,7 +16,8 @@ const Loaded = (props) => {
   return (
     <ul>
       <h2 className={"pageTitle"}>検索結果はこちらです！</h2>
-      {props.data.map((val, index) => {
+      <h3>生成された検索ワード：{props.data.keyword}</h3>
+      {props.data.result.map((val, index) => {
         return (
           <li className={"list"}>
             <h3 className={"movieTitle"}>{val.snippet.title}</h3>
@@ -43,7 +44,14 @@ const Result = (props) => {
   const execute = async () => {
     const searchResult = await props.onExecute();
     console.log(searchResult);
-    props.onChangeAppStatus({ searchResult: searchResult.items })
+    props.onChangeAppStatus(
+      {
+        searchResult: {
+          result: searchResult.result.items,
+          keyword: searchResult.keyword
+        }
+      }
+    );
   }
 
   useEffect(() => {

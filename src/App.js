@@ -130,7 +130,7 @@ const App = () => {
   return (
     <div className="App">
       <div className={styles["logo"]}>
-        <img className={styles["yt-logo"]} src={youtubeLogo} />
+        <img className={styles["yt-logo"]} src={youtubeLogo} alt="" />
         <span>✕</span>
         <span>WebComp2021</span>
       </div>

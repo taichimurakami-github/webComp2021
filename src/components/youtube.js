@@ -11,9 +11,10 @@ const createSearchQuery = async (info) => {
       season: "",
       time: "",
     },
+    baseword: "",
     subwords: "",
     options: {
-      instrumental: ""
+      instrumental: "",
     }
   }
 
@@ -40,7 +41,13 @@ const createSearchQuery = async (info) => {
   queryData.genre = getRandomValueFromArray(words.emotion[selected_emotion]);
   console.log("genre this time:", queryData.genre);
 
-  const boolean_array = [true, false, false, true, false, false];
+  //疑似ランダム用配列
+  const boolean_array = [true, true, false, true, false, true, true, false, false, true];// 60%の確率
+  const boolean_array_2 = [true, false, true, true, true, false, true, true, false, true];// 70%の確率
+
+  console.log("availability checker", words.genre[queryData.genre]);
+
+  queryData.baseword = getRandomValueFromArray(words.genre[queryData.genre].keyword);
 
   //environmentをゲット
   if (words.genre[queryData.genre].availability.season && getRandomValueFromArray(boolean_array)) {
@@ -58,8 +65,29 @@ const createSearchQuery = async (info) => {
     queryData.options.instrumental = getRandomValueFromArray(words.options.instrumental);
   }
 
+  //randomをゲット
+  if (words.genre[queryData.genre].availability.random.artist && getRandomValueFromArray(boolean_array_2)) {
+    console.log("artist random insert mode")
+
+    if (queryData.genre === "pops") {
+      const random_selector = getRandomValueFromArray(["jpop", "kpop"])
+
+      queryData.subwords
+        = getRandomValueFromArray(words.random.artist[queryData.genre][random_selector]);
+    } else {
+      queryData.options.subwords = getRandomValueFromArray(words.random.artist[queryData.genre]);
+    }
+
+
+  }
+
   console.log("selected query data result:", queryData);
-  return queryData.genre + " " + queryData.environment.season + " " + queryData.environment.time + " " + queryData.subwords + " " + queryData.options.instrumental;
+  return (
+    queryData.baseword + " "
+    + queryData.environment.season + " "
+    + queryData.environment.time + " "
+    + queryData.subwords + " "
+    + queryData.options.instrumental);
 }
 
 const search = async (info) => {
@@ -83,7 +111,10 @@ const search = async (info) => {
 
   console.log("search url:", URL);
   console.log(searchResult);
-  return searchResult;
+  return {
+    result: searchResult,
+    keyword: QUERY
+  }
 }
 
 export { search as searchYoutube };

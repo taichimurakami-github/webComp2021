@@ -24,7 +24,7 @@ const Confirm = (props) => {
   }
 
   const Detecting = (props) => {
-    return <img src={props.gif} />
+    return <img src={props.gif} alt="" />
   }
 
   const Failed = () => {
